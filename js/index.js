@@ -32,6 +32,7 @@ var redirects = new Map();
 var responses = new Map();
 var requests = new Map();
 var networkData = new Map();
+var URLs = new Map(); // map request IDs to URLs
 
 //Timeout 2s before connecting
 setTimeout(connect, 2000);
@@ -66,7 +67,18 @@ function enableInstanceProperties(instance) {
         resourceData['request'] = requests[requestId];
         resourceData['response'] = data;
 
+        URLs[requestId] = responseURL;
+
         networkData[responseURL] = resourceData;
+    });
+
+    instance.Network.loadingFinished(function(data) {
+        requestId = data['requestId'];
+        responseURL = URLs[requestId];
+        finalLen = data['encodedDataLength'];
+
+        // update encodedDataLength now that we've received the entire object
+        networkData[responseURL]['finalLength'] = finalLen;
     });
     
     instance.Network.requestWillBeSent(function(data) {
